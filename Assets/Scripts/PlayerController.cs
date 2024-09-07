@@ -1,7 +1,7 @@
 using UnityEngine;
 using Photon.Pun;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPunCallbacks
 {
     // Movement variables
     public float speed = 6.0f;
@@ -14,9 +14,6 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Vector3 velocity;
     private bool isGrounded;
-    private float xRotation = 0f;
-
-    private PhotonView view;
     private Camera playerCamera;
     private Transform soldierModel;  // Reference to the player model (Soldier_demo)
 
@@ -24,37 +21,22 @@ public class PlayerController : MonoBehaviour
     {
         // Reference to the Soldier model where PhotonView is attached
         soldierModel = transform.Find("Soldier_demo");
-        view = soldierModel.GetComponent<PhotonView>();
 
         // CharacterController is expected to be on the Player GameObject (the camera in this case)
         controller = GetComponent<CharacterController>();
-        playerCamera = GetComponent<Camera>();
 
-        // Disable camera and script for non-local players
-        if (!view.IsMine)
+        AudioListener listener = playerCamera.GetComponent<AudioListener>();
+        if (listener != null)
         {
-            if (playerCamera != null)
-            {
-                playerCamera.enabled = false;
-                AudioListener listener = playerCamera.GetComponent<AudioListener>();
-                if (listener != null)
-                {
-                    listener.enabled = false;
-                }
-            }
-            enabled = false;
-            return;
+            listener.enabled = true;
         }
-
-        Cursor.lockState = CursorLockMode.Locked;
     }
 
     void Update()
     {
-        if (!view.IsMine) return;
+        if (!photonView.IsMine) return;
 
         HandleMovement();
-        HandleMouseLook();
     }
 
     void HandleMovement()
@@ -80,21 +62,6 @@ public class PlayerController : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
-    }
-
-    void HandleMouseLook()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-
-        // Rotate the camera up and down
-        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // Rotate the soldier model left and right
-        soldierModel.Rotate(Vector3.up * mouseX);
     }
 }
 

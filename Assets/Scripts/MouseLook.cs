@@ -1,31 +1,35 @@
 using UnityEngine;
 using Photon.Pun;
 
-public class MouseLook : MonoBehaviour
+public class MouseLook : MonoBehaviourPunCallbacks
 {
     public float mouseSensitivity = 100f;
     public Transform playerBody;
 
     private float xRotation = 0f;
 
-    private PhotonView view;
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        view = GetComponentInParent<PhotonView>();  // Get the PhotonView from the parent object
+        Cursor.lockState = CursorLockMode.Locked;  // Get the PhotonView from the parent object
 
-        // Disable this script if this is not the local player
-        if (!view.IsMine)
+        Camera playerCamera = GetComponent<Camera>();
+        if (photonView.IsMine)
         {
-            enabled = false;
+            if (playerCamera != null)
+            {
+                playerCamera.enabled = true;
+            }
+            return;
         }
+
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     void Update()
     {
 
-        if (!view.IsMine) return;
+        if (!photonView.IsMine) return;
 
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
